@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="C:\Users\mk12344\Desktop\HelloWindows.cpp">
+    <ClCompile Include="HelloWindows.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
