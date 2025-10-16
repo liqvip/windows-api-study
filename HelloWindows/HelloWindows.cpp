@@ -35,8 +35,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, // 窗口风格
 		CW_USEDEFAULT, // x坐标
 		CW_USEDEFAULT, // y坐标
-		CW_USEDEFAULT, // 宽度
-		CW_USEDEFAULT, // 高度
+		800, // 宽度
+		800, // 高度
 		NULL, // 父窗口句柄
 		NULL, // 菜单句柄
 		hInstance, // 该应用程序实例的句柄
@@ -56,7 +56,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
+	// HDC : 设备上下文句柄，用于绘图
     HDC hdc;
+	// PAINTSTRUCT : 绘图结构体，用于BeginPaint和EndPaint函数
     PAINTSTRUCT ps;
     TCHAR szStr[] = TEXT("你好，Windows程序设计");
 
@@ -77,7 +79,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 		case WM_CHAR: {
 			// 提示你按下了哪个键
 			TCHAR szBuff[16] = { 0 };
-			StringCchPrintf(szBuff, _countof(szBuff), TEXT("你按下了 %c 键"), wParam);
+			// _countof(szBuff) 获取数组元素个数
+			// sizeof(szBuff) 获取数组字节数
+			StringCchPrintf(szBuff, _countof(szBuff), TEXT("你按下了 %c 键, %d"), wParam, sizeof(szBuff));
 			MessageBox(hwnd, szBuff, TEXT("提示"), MB_OK | MB_ICONINFORMATION);
 			return 0;
 		}
