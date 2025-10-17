@@ -1,6 +1,7 @@
 #include <Windows.h>
-#include "Metrics.h"
 #include <strsafe.h>
+#include "Metrics.h"
+#include "resource.h"
 
 const int NUMLINES = sizeof(METRICS) / sizeof(METRICS[0]);
 
@@ -19,12 +20,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInstance, LPSTR lpCmdLine,
 	wndclass.cbClsExtra = 0;
 	wndclass.cbWndExtra = 0;
 	wndclass.hInstance = hInstance;
-	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wndclass.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLE));
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
 	wndclass.lpszMenuName = NULL;
 	wndclass.lpszClassName = szClassName;
-	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wndclass.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_APPLE));
 
 	// ×¢²á´°¿ÚÀà
 	RegisterClassEx(&wndclass);
