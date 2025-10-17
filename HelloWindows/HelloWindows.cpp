@@ -28,15 +28,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wndclass.hIconSm = NULL; // 小图标
 	RegisterClassEx(&wndclass); // 注册窗口类
 
+	// 获取屏幕宽高
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	int windowWidth = 800;
+	int windowHeight = 800;
+	int x = (screenWidth - windowWidth) / 2;
+	int y = (screenHeight - windowHeight) / 2;
+
     hwnd = CreateWindowEx(
 		0, // 扩展风格，通常为0
 		szClassName, // 窗口类名
 		szAppName, // 窗口标题
 		WS_OVERLAPPEDWINDOW ^ WS_THICKFRAME, // 窗口风格
-		CW_USEDEFAULT, // x坐标
-		CW_USEDEFAULT, // y坐标
-		800, // 宽度
-		800, // 高度
+		x, // x坐标
+		y, // y坐标
+		windowWidth, // 宽度
+		windowHeight, // 高度
 		NULL, // 父窗口句柄
 		NULL, // 菜单句柄
 		hInstance, // 该应用程序实例的句柄
