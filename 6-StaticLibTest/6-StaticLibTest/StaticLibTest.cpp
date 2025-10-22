@@ -6,8 +6,8 @@
 #pragma comment(lib, "6-StaticLib1.lib")
 
 /*
- * 注意配置 lib 库目录
- * 项目->属性->链接器->附加库目录
+ * 注意：如果 .lib 文件不在项目的当前目录,需配置 .lib 文件所在的路径
+ * 项目->属性->链接器->常规->附加库目录
 */
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
