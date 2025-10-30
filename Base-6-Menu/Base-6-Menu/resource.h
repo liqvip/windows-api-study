@@ -3,6 +3,7 @@
 // π© Base-6-Menu.rc  π”√
 //
 #define IDR_MENU1                       101
+#define IDR_ACCELERATOR1                102
 #define ID_40001                        40001
 #define ID_40002                        40002
 #define ID_40003                        40003
@@ -22,13 +23,14 @@
 #define ID_COPY                         40017
 #define ID_PASTE                        40018
 #define ID_ABOUT                        40019
+#define ID_ACCELERATOR40023             40023
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        102
-#define _APS_NEXT_COMMAND_VALUE         40020
+#define _APS_NEXT_RESOURCE_VALUE        103
+#define _APS_NEXT_COMMAND_VALUE         40025
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

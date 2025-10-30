@@ -45,11 +45,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	);
 	ShowWindow(hwnd, nCmdShow);
 
+	// 加载加速键表
+	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	// 消息循环
 	BOOL bRet;
 	while ((bRet = GetMessage(&msg, NULL, 0, 0)) != 0) {			
-		TranslateMessage(&msg);
-		DispatchMessageW(&msg);
+		/*
+		* 
+		* 处理菜单命令的快捷键。 该函数将 WM_KEYDOWN 或 WM_SYSKEYDOWN 
+		* 消息转换为 WM_COMMAND 或 WM_SYSCOMMAND 消息（如果指定快捷键表中有项），
+		* 然后将 WM_COMMAND 或 WM_SYSCOMMAND 消息直接发送到指定的窗口过程。 
+		* TranslateAccelerator 在窗口过程处理消息之前不会返回。
+		* 处理完快捷键后，TranslateAccelerator 返回非零值。
+		*/
+		int res = TranslateAccelerator(hwnd, hAccel, &msg);
+		if (!res) { // 如果不是加速键消息，则进行正常的消息翻译和分发
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
 	}
 
 	return msg.wParam;
