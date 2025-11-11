@@ -9,6 +9,7 @@
 
 // 添加要在此处预编译的标头
 #include "framework.h"
+#define DLL_EXPORT
 #include "hookdll.h"
 
 #endif //PCH_H
