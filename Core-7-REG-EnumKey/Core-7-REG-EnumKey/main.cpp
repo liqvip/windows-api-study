@@ -16,9 +16,8 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	switch (uMsg) {
 		case WM_INITDIALOG: {
 			// 获取子键句柄
-			LONG lRet= RegOpenKeyEx(HKEY_CURRENT_USER, lpSubKey, 0, KEY_ENUMERATE_SUB_KEYS, &hKey);
+			LONG lRet= RegOpenKeyEx(HKEY_CURRENT_USER, lpSubKey, 0, KEY_READ, &hKey);
 			if (lRet != ERROR_SUCCESS) return TRUE;
-
 
 			return TRUE;
 		}
@@ -52,8 +51,25 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 					break;
 				}
-				case IDC_GET_KEY_INFO:	// 获取子键信息
+				case IDC_GET_KEY_INFO: {	// 获取子键信息
+					DWORD lpcSubKeys;	// hKey 下子键数量
+					DWORD lpcMaxSubKeyLength; // hKey 下子键名称最大字符长度，不包含终止字符
+					DWORD lpcValues;	// hKey 的键值项的数量
+					DWORD lpcMaxValueNameLength;	// hKey 的键名最大字符长度
+					DWORD lpcMaxValueLength; // hKey 的键值数据的最大长度(以字节为单位)
+
+					LONG lRet = RegQueryInfoKey(hKey, NULL, NULL, NULL, &lpcSubKeys, &lpcMaxSubKeyLength, 
+						NULL, &lpcValues, &lpcMaxValueNameLength, &lpcMaxValueLength, NULL, NULL);
+					if (lRet == ERROR_SUCCESS) {
+						TCHAR szInfo[1024] = { 0 };
+						StringCchPrintf(szInfo, _countof(szInfo), TEXT("hKey 下子键数量:%d\r\nhKey 下子键名称最大字符长度:%d\r\nkHey的键值项数量:%d\r\nhKey的键名最大字符长度:%d\r\nhKey的键值数据最大长度:%d字节"), 
+							lpcSubKeys, lpcMaxSubKeyLength, lpcValues, lpcMaxValueNameLength, lpcMaxValueLength);
+						SetDlgItemText(hWnd, IDC_KEY_INFO, szInfo);
+					}else {
+						MessageBox(hWnd, TEXT("获取失败"), TEXT("提示"), MB_ICONERROR | MB_OK);
+					}
 					break;
+				}
 				case IDC_GET_VALUE_ITEM:	// 枚举所有键值项
 					break;
 				case IDCANCEL:
