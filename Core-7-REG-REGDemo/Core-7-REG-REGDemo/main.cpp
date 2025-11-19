@@ -55,9 +55,9 @@ INT_PTR CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 			GetWindowRect(hwndDlg, &rect);
 			// 创建子键, 如果指定的子键已存在, 则该函数会打开子键并返回子键句柄
 			// 注意，程序无法在HKEY_USERS或HKEY_LOCAL_MACHINE根键下面创建子键
-			LPDWORD lpdwDisposition = new DWORD;
-			lRet = RegCreateKeyEx(HKEY_CURRENT_USER, lpSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, lpdwDisposition);
-			delete lpdwDisposition;
+			DWORD dwDisposition;
+			lRet = RegCreateKeyEx(HKEY_CURRENT_USER, lpSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisposition);
+			
 			if(lRet == ERROR_SUCCESS) {
 				dwX = rect.left;
 				dwY = rect.top;
