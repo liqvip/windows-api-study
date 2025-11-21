@@ -16,7 +16,7 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 	switch (uMsg) {
 		case WM_INITDIALOG: {
 			// 获取子键句柄
-			LONG lRet= RegOpenKeyEx(HKEY_CURRENT_USER, lpSubKey, 0, KEY_READ, &hKey);
+			LONG lRet= RegOpenKeyEx(HKEY_CURRENT_USER, lpSubKey2, 0, KEY_READ, &hKey);
 			if (lRet != ERROR_SUCCESS) return TRUE;
 
 			return TRUE;
@@ -70,8 +70,35 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					}
 					break;
 				}
-				case IDC_GET_VALUE_ITEM:	// 枚举所有键值项
+				case IDC_GET_VALUE_ITEM: {	// 枚举所有键值项
+					DWORD dwIndex = 0;
+					TCHAR lpValueName[MAX_PATH] = { 0 };
+					DWORD lpType;
+					BYTE lpData[256] = { 0 };
+					TCHAR szRes[10 * 1024] = { 0 };
+					while (TRUE) {
+						DWORD lpcchValueName = _countof(lpValueName);
+						DWORD lpcbData = _countof(lpData);
+						//ZeroMemory(lpData, _countof(lpData));
+						LONG lRet = RegEnumValue(hKey, dwIndex++, lpValueName, &lpcchValueName, NULL, &lpType, lpData, &lpcbData);
+						TCHAR szItem[1024] = {0};
+						if (lRet == ERROR_SUCCESS) {
+							switch (lpType) {
+								case REG_DWORD: {
+									DWORD keyData = *(DWORD*)lpData;
+									StringCchPrintf(szItem, _countof(szItem), TEXT("键名：%s, 键值: %d\r\n"), lpValueName, keyData);
+									break;
+								}
+							}
+						}
+						StringCchCat(szRes, _countof(szRes), szItem);
+						if (lRet == ERROR_NO_MORE_ITEMS) {
+							break;
+						}
+					}
+					SetDlgItemText(hWnd, IDC_EDIT1, szRes);
 					break;
+				}
 				case IDCANCEL:
 					EndDialog(hWnd, 0);
 					return TRUE;
