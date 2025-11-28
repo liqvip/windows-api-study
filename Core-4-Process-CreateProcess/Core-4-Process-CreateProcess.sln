@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core-4-Process-CreateProcess", "Core-4-Process-CreateProcess\Core-4-Process-CreateProcess.vcxproj", "{EE19811F-DDB8-44DD-B335-D4DF1D97090E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Debug|x64.ActiveCfg = Debug|x64
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Debug|x64.Build.0 = Debug|x64
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Debug|x86.ActiveCfg = Debug|Win32
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Debug|x86.Build.0 = Debug|Win32
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Release|x64.ActiveCfg = Release|x64
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Release|x64.Build.0 = Release|x64
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Release|x86.ActiveCfg = Release|Win32
+		{EE19811F-DDB8-44DD-B335-D4DF1D97090E}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F70F86EB-314F-4C75-A6D2-B63F9AB1E02B}
+	EndGlobalSection
+EndGlobal

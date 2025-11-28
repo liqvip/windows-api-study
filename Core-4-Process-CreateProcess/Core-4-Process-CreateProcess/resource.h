@@ -1,13 +1,11 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ 生成的包含文件。
-// 供 Assistant.rc 使用
+// 供 Core-4-Process-CreateProcess.rc 使用
 //
 #define IDD_DIALOG1                     101
-#define IDC_CHECK1                      1004
-#define IDC_STARTUP                     1004
-#define IDC_OPEN_BOOKMARK               1005
-#define IDC_OPEN2                       1007
-#define IDC_OPEN_VS                     1007
+#define IDC_OPEN_CALC                   1001
+#define IDC_EDIT2                       1003
+#define IDC_INFO                        1003
 
 // Next default values for new objects
 // 
@@ -15,7 +13,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        103
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

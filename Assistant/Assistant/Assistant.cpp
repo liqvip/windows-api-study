@@ -36,19 +36,22 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			return TRUE;
 		}
 		case WM_COMMAND: {
-			if (HIWORD(wParam) == BN_CLICKED) {
-				switch (LOWORD(wParam)) {
-					case IDC_OPEN: {
-						LPCTSTR lpDirectory1 = TEXT("D:\\vs-project\\windows-api-study");
-						LPCTSTR lpDirectory2 = TEXT("D:\\电子书");
-						INT_PTR result = (INT_PTR)ShellExecute(hWnd, TEXT("explore"), lpDirectory1, NULL, NULL, SW_SHOWMINNOACTIVE);
-						ShellExecute(hWnd, TEXT("explore"), lpDirectory2, NULL, NULL, SW_SHOWMINNOACTIVE);
-						break;
-					}
-				}
-				return TRUE;
-			}
 			switch (LOWORD(wParam)) {
+				case IDC_OPEN_BOOKMARK: {
+					LPCTSTR lpDirectory1 = TEXT("D:\\vs-project\\windows-api-study");
+					LPCTSTR lpDirectory2 = TEXT("D:\\电子书");
+					INT_PTR result = (INT_PTR)ShellExecute(hWnd, TEXT("explore"), lpDirectory1, NULL, NULL, SW_SHOWMINNOACTIVE);
+					ShellExecute(hWnd, TEXT("explore"), lpDirectory2, NULL, NULL, SW_SHOWMINNOACTIVE);
+					break;
+				}
+				case IDC_OPEN_VS: {
+					LPCTSTR lpDirectory1 = TEXT("D:\\VisualStudio\\2022\\Community\\Common7\\IDE\\devenv.exe");
+					INT_PTR result = (INT_PTR)ShellExecute(hWnd, TEXT("open"), lpDirectory1, NULL, NULL, SW_SHOWMINNOACTIVE);
+					if (result <= 32) {
+						MessageBox(hWnd, TEXT("打开VS失败"), TEXT("错误"), MB_OK | MB_ICONERROR);
+					}
+					break;
+				}
 				case IDOK:
 				case IDCANCEL: {	// 退出时设置(创建)键值项
 					// 拿到用户开机设置
@@ -67,7 +70,8 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 					// 设置自启动
 					TCHAR szFileName[MAX_PATH] = { 0 };
-					GetModuleFileName(NULL, szFileName, _countof(szFileName));	// 获取当前进程可执行文件路径
+					// 获取当前进程中已加载模块的完整路径
+					GetModuleFileName(NULL, szFileName, _countof(szFileName));	// hModule = NULL, 获取当前进程可执行文件路径
 					
 					LPCTSTR lpData = szFileName;
 					DWORD cbData = (lstrlen(lpData) + 1) * sizeof(TCHAR);
@@ -85,7 +89,7 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 						}
 
 					}
-					EndDialog(hWnd, 0);
+					//EndDialog(hWnd, 0);
 					return TRUE;
 				}
 			}
