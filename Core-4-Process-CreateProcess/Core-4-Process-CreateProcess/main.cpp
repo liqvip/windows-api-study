@@ -1,7 +1,9 @@
 #include <Windows.h>
 #include "resource.h"
 #include <strsafe.h>
+#include <string>
 
+using namespace std;
 INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInstance, LPSTR lpCmdLine, int nCmdShow) {
@@ -10,13 +12,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInstance, LPSTR lpCmdLine,
 }
 
 INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	static TCHAR szInfo[512] = { 0 };
+	static wstring res;
 	switch (uMsg) {
 		case WM_INITDIALOG: {
 			__int64 baseAddress = (__int64)GetModuleHandle(NULL);
+			// 		baseAddress	0x00007ff7f4e80000	__int64
 			DWORD dwID = GetCurrentProcessId();
-			StringCchPrintf(szInfo, _countof(szInfo), TEXT("当前进程ID:%d\r\n当前进程基地址:0X%X\r\n"), dwID, baseAddress);
-			SetDlgItemText(hWnd, IDC_INFO, szInfo);
+			res = L"当前进程ID:" + to_wstring(dwID) + L"\r\n" + L"当前进程基地址:0x" + to_wstring(baseAddress) + L"\r\n";
+			SetDlgItemText(hWnd, IDC_INFO, res.c_str());
 			return TRUE;
 		}
 		case WM_COMMAND: {
@@ -35,10 +38,9 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 						// 挂起调用线程,等待子进程初始化完毕
 						DWORD dwRes= WaitForInputIdle(pi.hProcess, 5000);
 						// 获取计算器父进程ID
-						TCHAR szDest[256] = { 0 };
-						StringCchPrintf(szDest, _countof(szDest), TEXT("计算器进程ID:%d\r\n计算机线程ID:%d\r\n"), pi.dwProcessId, pi.dwThreadId);
-						StringCchCat(szInfo, _countof(szInfo), szDest);
-						SetDlgItemText(hWnd, IDC_INFO, szInfo);
+						wstring szDest;
+						res += L"计算器进程ID:" + to_wstring(pi.dwProcessId) + L"\r\n" + L"计算器线程ID:" + to_wstring(pi.dwThreadId) + L"\r\n";
+						SetDlgItemText(hWnd, IDC_INFO, res.c_str());
 						CloseHandle(pi.hProcess);
 						CloseHandle(pi.hThread);
 					}
