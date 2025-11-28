@@ -36,7 +36,16 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			return TRUE;
 		}
 		case WM_COMMAND: {
-			if (HIWORD(wParam) == BM_CLICK) {
+			if (HIWORD(wParam) == BN_CLICKED) {
+				switch (LOWORD(wParam)) {
+					case IDC_OPEN: {
+						LPCTSTR lpDirectory1 = TEXT("D:\\vs-project\\windows-api-study");
+						LPCTSTR lpDirectory2 = TEXT("D:\\电子书");
+						INT_PTR result = (INT_PTR)ShellExecute(hWnd, TEXT("explore"), lpDirectory1, NULL, NULL, SW_SHOWMINNOACTIVE);
+						ShellExecute(hWnd, TEXT("explore"), lpDirectory2, NULL, NULL, SW_SHOWMINNOACTIVE);
+						break;
+					}
+				}
 				return TRUE;
 			}
 			switch (LOWORD(wParam)) {
@@ -57,7 +66,10 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					}
 
 					// 设置自启动
-					LPCTSTR lpData = TEXT("D:\\VisualStudio\\2022\\Community\\Common7\\IDE\\devenv.exe");
+					TCHAR szFileName[MAX_PATH] = { 0 };
+					GetModuleFileName(NULL, szFileName, _countof(szFileName));	// 获取当前进程可执行文件路径
+					
+					LPCTSTR lpData = szFileName;
 					DWORD cbData = (lstrlen(lpData) + 1) * sizeof(TCHAR);
 					DWORD dwPosition2; // 返回函数处理结果
 					LONG lResult2 = RegCreateKeyEx(HKEY_CURRENT_USER, lpSubKey1, NULL, NULL, 
