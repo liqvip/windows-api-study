@@ -37,7 +37,7 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					if (CreateProcess(NULL, szCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
 						// 挂起调用线程,等待子进程初始化完毕
 						DWORD dwRes= WaitForInputIdle(pi.hProcess, 5000);
-						// 获取计算器父进程ID
+						DWORD pid = GetProcessId(pi.hProcess);
 						wstring szDest;
 						res += L"计算器进程ID:" + to_wstring(pi.dwProcessId) + L"\r\n" + L"计算器线程ID:" + to_wstring(pi.dwThreadId) + L"\r\n";
 						SetDlgItemText(hWnd, IDC_INFO, res.c_str());
