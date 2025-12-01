@@ -52,6 +52,17 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					}
 					break;
 				}
+				case IDC_OPEN_CALC: {
+					TCHAR szLpCmdLine[MAX_PATH] = TEXT("calc");
+					STARTUPINFO si = {sizeof(STARTUPINFO)};
+					PROCESS_INFORMATION  pi;
+					GetStartupInfo(&si);
+					if (CreateProcess(NULL, szLpCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+						CloseHandle(pi.hProcess);
+						CloseHandle(pi.hThread);
+					}
+					break;
+				}
 				case IDOK:
 				case IDCANCEL: {	// 退出时设置(创建)键值项
 					// 拿到用户开机设置

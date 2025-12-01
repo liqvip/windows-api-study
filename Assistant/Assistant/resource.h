@@ -8,6 +8,8 @@
 #define IDC_OPEN_BOOKMARK               1005
 #define IDC_OPEN2                       1007
 #define IDC_OPEN_VS                     1007
+#define IDC_OPEN_VS2                    1008
+#define IDC_OPEN_CALC                   1008
 
 // Next default values for new objects
 // 
