@@ -11,18 +11,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPreInstance, LPSTR lpCmdline,
 }
 
 INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	static HWND hWndAge, hWndName, hWndDeposit, hWndSendInfo, hWndScoreChiness, hWndScoreMath, hWndScoreEnglish, hWndSendScore;
 	switch (uMsg) {
 		case WM_INITDIALOG: {
-			hWndAge = GetDlgItem(hWnd, IDC_AGE);
-			hWndName = GetDlgItem(hWnd, IDC_NAME);
-			hWndDeposit = GetDlgItem(hWnd, IDC_DEPOSIT);
-			hWndSendInfo = GetDlgItem(hWnd, IDC_SEND_SCORE);
-
-			hWndScoreChiness = GetDlgItem(hWnd, IDC_SCORE_CHINESS);
-			hWndScoreMath = GetDlgItem(hWnd, IDC_SCORE_MATH);
-			hWndScoreEnglish = GetDlgItem(hWnd, IDC_SCORE_ENGLISH);
-			hWndSendScore = GetDlgItem(hWnd, IDC_SEND_SCORE);
 			break;
 		}
 		case WM_COMMAND: {
@@ -36,8 +26,8 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 						GetWindowThreadProcessId(hWndDest, &dwDestProcessId);
 
 						PERSONSTRUCT person = {0};
-						GetDlgItemText(hWndName, IDC_NAME, person.m_szName, _countof(person.m_szName));
-						person.m_nAge = GetDlgItemInt(hWndAge, IDC_AGE, NULL, FALSE);
+						GetDlgItemText(hWnd, IDC_NAME, person.m_szName, _countof(person.m_szName));
+						person.m_nAge = GetDlgItemInt(hWnd, IDC_AGE, NULL, FALSE);
 						TCHAR lpString[32] = { 0 };
 						GetDlgItemText(hWnd, IDC_DEPOSIT, lpString, _countof(lpString));
 						person.m_dDeposit = _ttof(lpString);
@@ -53,7 +43,41 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 					}
 					break;
 				}
-				case IDC_SEND_SCORE: {	// 发送分数
+				case IDC_SEND_SCORE: {	// 发送分数	
+					TCHAR lpWindowName[32] = TEXT("接收数据");
+					HWND hWndDest;
+					if ((hWndDest = FindWindow(NULL, lpWindowName)) != NULL) {
+						// 获取一下目标窗口的进程ID
+						DWORD dwDestProcessId;
+						GetWindowThreadProcessId(hWndDest, &dwDestProcessId);
+
+						SCORESTRUCT score = { 0 };
+
+						// 语文成绩
+						TCHAR lpScore[32] = { 0 };
+						GetDlgItemText(hWnd, IDC_SCORE_CHINESS, lpScore, _countof(lpScore));
+						score.m_fChiniess = _ttof(lpScore);
+
+						// 数学成绩
+						ZeroMemory(lpScore, _countof(lpScore) * sizeof(TCHAR));
+						GetDlgItemText(hWnd, IDC_SCORE_MATH, lpScore, _countof(lpScore));
+						score.m_fMath = _ttof(lpScore);
+
+						// 英语成绩
+						ZeroMemory(lpScore, _countof(lpScore) * sizeof(TCHAR));
+						GetDlgItemText(hWnd, IDC_SCORE_ENGLISH, lpScore, _countof(lpScore));
+						score.m_fEnglish = _ttof(lpScore);
+
+						// 不能使用 PostMessage, SendNotifyMessage, SendMessageCallback 函数
+						// 这些函数的 wParam 和 lParam 参数中不能传递指针，因为这些函数立即返回，函数返回后指
+						// 针指向的内存会被释放，函数调用会失败
+						COPYDATASTRUCT copyDataStrct = { 0 };
+
+						copyDataStrct.dwData = SCOREDATA;
+						copyDataStrct.cbData = sizeof(SCORESTRUCT);
+						copyDataStrct.lpData = &score;
+						SendMessage(hWndDest, WM_COPYDATA, (WPARAM)hWndDest, (LPARAM)&copyDataStrct);
+					}
 					break;
 				}
 				case IDCANCEL:

@@ -10,7 +10,6 @@
 #define IDC_SCORE_CHINESS               1008
 #define IDC_SCORE_MATH                  1009
 #define IDC_SCORE_ENGLISH               1010
-#define IDC_SEND_INFO2                  1011
 #define IDC_SEND_SCORE                  1011
 
 // Next default values for new objects

@@ -1,7 +1,7 @@
 #pragma once
 
-#define PERSONDATA 1;
-#define SCOREDATA 2;
+#define PERSONDATA 1
+#define SCOREDATA 2
 
 typedef struct PERSONSTRUCT {
 	TCHAR m_szName[256];
