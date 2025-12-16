@@ -1,6 +1,8 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 #include <Psapi.h>
+#include <tchar.h>
+#include <strsafe.h>
 #include "resource.h"
 
 #include <Commctrl.h>
@@ -81,21 +83,72 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				break;
 			}
 			case ID_END_PROCESS: {	// 结束进程
+				nSelected = SendMessage(GetDlgItem(g_hWnd, IDC_LIST),LVM_GETSELECTIONMARK, 0, 0);
+				// 确定要结束进程吗
+				lvi.iItem = nSelected; lvi.iSubItem	= 0;lvi.mask = LVIF_TEXT;
+				lvi.pszText = szProcessName; lvi.cchTextMax = _countof(szProcessName);
+				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+
+				StringCchPrintf(szBuf, _countof(szBuf), TEXT("确定要结束 %s 进程吗？"), lvi.pszText);
+				nRet = MessageBox(hWnd, szBuf, TEXT("结束进程"), MB_OKCANCEL);
+				if (nRet == IDCANCEL) return FALSE;
+
 				break;
 			}
-			case ID_OPEN_FILE_LOCATION: { // 打开文件所在位置
+			case ID_OPEN_LOCATION: { // 打开文件所在位置
+				nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+				lvi.iItem = nSelected;	lvi.iSubItem = 3;	lvi.mask = LVIF_TEXT;	
+				lvi.pszText = szProcessName;	lvi.cchTextMax = _countof(szProcessName);
+				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+
+				StringCchPrintf(szBuf, _countof(szBuf), TEXT("/select,%s"), lvi.pszText);
+				ShellExecute(hWnd, TEXT("open"), TEXT("explorer"), szBuf, NULL, SW_SHOW);
 				break;
 			}
 			case ID_PAUSE_PROCESS: {	// 暂停进程
+				nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+				lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
+				lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
+				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+				SuspendProcess(_ttoi(lvi.pszText), TRUE);
 				break;
 			}
 			case ID_RESUME_PROCESS: {	// 恢复进程
+				nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+				lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
+				lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
+				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+				SuspendProcess(_ttoi(lvi.pszText), FALSE);
+
 				break;
 			}
 			}
 			break;
 		}
 		case WM_NOTIFY: {
+			if (((LPNMHDR)lParam)->idFrom == IDC_LIST && ((LPNMHDR)lParam)->code == NM_RCLICK) {
+				if (((LPNMITEMACTIVATE)lParam)->iItem < 0) return FALSE;
+				// 如果可执行文件路径一列为空，则禁用结束该进程、打开文件所在位置、暂停进程、结束进程菜单
+				nSelected = SendMessage(GetDlgItem(g_hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+				hMenu = LoadMenu(g_hInstance, MAKEINTRESOURCE(IDR_MENU1));
+
+				lvi.iItem = nSelected; lvi.iSubItem = 3; lvi.mask = LVIF_TEXT;
+				lvi.pszText = szProcessName; lvi.cchTextMax = _countof(szProcessID);
+
+				SendDlgItemMessage(g_hWnd, IDC_LIST, LVM_GETITEM, 0, (LPARAM)&lvi);
+
+				if (_tcsicmp(lvi.pszText, TEXT("")) == 0) {
+					EnableMenuItem(hMenu, ID_END_PROCESS, MF_BYCOMMAND | MF_DISABLED);
+					EnableMenuItem(hMenu, ID_OPEN_LOCATION, MF_BYCOMMAND | MF_DISABLED);
+					EnableMenuItem(hMenu, ID_PAUSE_PROCESS, MF_BYCOMMAND | MF_DISABLED);
+					EnableMenuItem(hMenu, ID_RESUME_PROCESS, MF_BYCOMMAND | MF_DISABLED);
+				}
+
+				// 弹出快捷菜单
+				GetCursorPos(&pt);
+
+				TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, pt.x, pt.y, 0, hWnd, NULL);
+			}
 			break;
 		}
 	}
@@ -154,7 +207,7 @@ BOOL GetProcessList() {
 			}
 
 			// 第2列，进程ID
-			_itow_s(pe.th32ProcessID, szBuf, _countof(szBuf), 10);	// 字符串转10进制整数
+			_itow_s(pe.th32ProcessID, szBuf, _countof(szBuf), 10);	// 10进制整数转字符串
 			lvi.mask = LVIF_TEXT; lvi.iSubItem = 1;	lvi.pszText = szBuf;
 			SendMessage(GetDlgItem(g_hWnd,IDC_LIST), LVM_SETITEM, 0, (LPARAM)&lvi);
 
@@ -179,5 +232,35 @@ BOOL GetProcessList() {
 }
 
 VOID SuspendProcess(DWORD dwProcessId, BOOL bSuspend) {
+	HANDLE hSnapshot;
+	THREADENTRY32 te = { sizeof(THREADENTRY32) };
+	BOOL bRet = FALSE;
+	HANDLE hThread;
 
+	// 枚举所有线程
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+
+	if (hSnapshot == INVALID_HANDLE_VALUE) {
+		MessageBox(g_hWnd, TEXT("CreateToolhelp32Snapshot函数调用失败"), TEXT ("提示"), MB_OK);
+		return;
+	}
+
+	bRet = Thread32First(hSnapshot, &te);
+
+	while (bRet) {
+		if (te.th32OwnerProcessID == dwProcessId) {
+			hThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, te.th32ThreadID);
+			if (hThread) {
+				if (bSuspend) {
+					SuspendThread(hThread);
+				}else {
+					ResumeThread(hThread);
+				}
+				CloseHandle(hThread);
+			}
+		}
+		bRet = Thread32Next(hSnapshot, &te);
+	}
+
+	CloseHandle(hSnapshot);
 }

@@ -7,7 +7,6 @@
 #define IDC_LIST                        1003
 #define ID_REFRESH_PROCESS              40004
 #define ID_END_PROCESS                  40005
-#define ID_OPEN_FILE_LOCATION           40006
 #define ID_RESUME_PROCESS               40015
 #define ID_OPEN_LOCATION                40016
 #define ID_PAUSE_PROCESS                40017
