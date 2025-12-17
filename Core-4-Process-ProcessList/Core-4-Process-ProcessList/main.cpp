@@ -93,6 +93,22 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				nRet = MessageBox(hWnd, szBuf, TEXT("结束进程"), MB_OKCANCEL);
 				if (nRet == IDCANCEL) return FALSE;
 
+				lvi.iItem = nSelected; lvi.iSubItem	= 1;lvi.mask = LVIF_TEXT;
+				lvi.pszText = szProcessID; lvi.cchTextMax = _countof(szProcessID);
+				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+				hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, _ttoi(lvi.pszText));
+
+				if (hProcess) {
+					bRet = TerminateProcess(hProcess, 0);
+					if (!bRet) {
+						StringCchPrintf(szBuf, _countof(szBuf), TEXT("结束进程 %s 失败"), szProcessName);
+						MessageBox(hWnd, szBuf, TEXT("错误提示"), MB_OK);
+					}else {
+						// 删除列表项
+						SendDlgItemMessage(hWnd, IDC_LIST, LVM_DELETEITEM, nSelected, 0);
+					}
+					CloseHandle(hProcess);
+				}
 				break;
 			}
 			case ID_OPEN_LOCATION: { // 打开文件所在位置
