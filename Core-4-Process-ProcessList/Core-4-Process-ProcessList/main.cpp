@@ -21,6 +21,9 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 // 显示进程列表
 BOOL GetProcessList();
 
+// 显示模块列表
+VOID GetModuleList(DWORD dwProcessId);
+
 // 暂停、恢复进程
 VOID SuspendProcess(DWORD dwProcessId, BOOL bSuspend);
 
@@ -66,6 +69,24 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				ILC_MASK | ILC_COLOR32, 500, 0);
 			SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_SETIMAGELIST, LVSIL_SMALL, (LPARAM)g_hImageListSmall);
 
+
+			// 模块列表视图
+			SendMessage(GetDlgItem(hWnd, IDC_LIST_MODULE), LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_LABELTIP);
+			lvc.mask = LVCF_SUBITEM | LVCF_WIDTH | LVCF_TEXT; // 列编号,列宽度,列标题有效
+
+			lvc.iSubItem = 0; lvc.cx = 150; lvc.pszText = TEXT("模块名");
+			SendMessage(GetDlgItem(hWnd, IDC_LIST_MODULE), LVM_INSERTCOLUMN, 0, (LPARAM)&lvc);
+
+			lvc.iSubItem = 1; lvc.cx = 150; lvc.pszText = TEXT("模块基地址");
+			SendMessage(GetDlgItem(hWnd, IDC_LIST_MODULE), LVM_INSERTCOLUMN, 1, (LPARAM)&lvc);
+
+			lvc.iSubItem = 2; lvc.cx = 100; lvc.pszText = TEXT("模块大小(字节)");
+			SendMessage(GetDlgItem(hWnd, IDC_LIST_MODULE), LVM_INSERTCOLUMN, 2, (LPARAM)&lvc);
+
+
+			lvc.iSubItem = 3; lvc.cx = 260; lvc.pszText = TEXT("模块路径");
+			SendMessage(GetDlgItem(hWnd, IDC_LIST_MODULE), LVM_INSERTCOLUMN, 3, (LPARAM)&lvc);
+
 			// 显示进程列表
 			GetProcessList();
 
@@ -73,71 +94,79 @@ INT_PTR CALLBACK DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		}
 		case WM_COMMAND: {
 			switch (LOWORD(wParam)) {
-			case IDOK:
-			case IDCANCEL:
-				ImageList_Destroy(g_hImageListSmall);
-				EndDialog(hWnd, 0);
-				break;
-			case ID_REFRESH_PROCESS: {	// 刷新进程列表
-				GetProcessList();
-				break;
-			}
-			case ID_END_PROCESS: {	// 结束进程
-				nSelected = SendMessage(GetDlgItem(g_hWnd, IDC_LIST),LVM_GETSELECTIONMARK, 0, 0);
-				// 确定要结束进程吗
-				lvi.iItem = nSelected; lvi.iSubItem	= 0;lvi.mask = LVIF_TEXT;
-				lvi.pszText = szProcessName; lvi.cchTextMax = _countof(szProcessName);
-				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
-
-				StringCchPrintf(szBuf, _countof(szBuf), TEXT("确定要结束 %s 进程吗？"), lvi.pszText);
-				nRet = MessageBox(hWnd, szBuf, TEXT("结束进程"), MB_OKCANCEL);
-				if (nRet == IDCANCEL) return FALSE;
-
-				lvi.iItem = nSelected; lvi.iSubItem	= 1;lvi.mask = LVIF_TEXT;
-				lvi.pszText = szProcessID; lvi.cchTextMax = _countof(szProcessID);
-				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
-				hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, _ttoi(lvi.pszText));
-
-				if (hProcess) {
-					bRet = TerminateProcess(hProcess, 0);
-					if (!bRet) {
-						StringCchPrintf(szBuf, _countof(szBuf), TEXT("结束进程 %s 失败"), szProcessName);
-						MessageBox(hWnd, szBuf, TEXT("错误提示"), MB_OK);
-					}else {
-						// 删除列表项
-						SendDlgItemMessage(hWnd, IDC_LIST, LVM_DELETEITEM, nSelected, 0);
-					}
-					CloseHandle(hProcess);
+				case IDOK:
+				case IDCANCEL:
+					ImageList_Destroy(g_hImageListSmall);
+					EndDialog(hWnd, 0);
+					break;
+				case ID_REFRESH_PROCESS: {	// 刷新进程列表
+					GetProcessList();
+					break;
 				}
-				break;
-			}
-			case ID_OPEN_LOCATION: { // 打开文件所在位置
-				nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
-				lvi.iItem = nSelected;	lvi.iSubItem = 3;	lvi.mask = LVIF_TEXT;	
-				lvi.pszText = szProcessName;	lvi.cchTextMax = _countof(szProcessName);
-				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+				case ID_END_PROCESS: {	// 结束进程
+					nSelected = SendMessage(GetDlgItem(g_hWnd, IDC_LIST),LVM_GETSELECTIONMARK, 0, 0);
+					// 确定要结束进程吗
+					lvi.iItem = nSelected; lvi.iSubItem	= 0;lvi.mask = LVIF_TEXT;
+					lvi.pszText = szProcessName; lvi.cchTextMax = _countof(szProcessName);
+					SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
 
-				StringCchPrintf(szBuf, _countof(szBuf), TEXT("/select,%s"), lvi.pszText);
-				ShellExecute(hWnd, TEXT("open"), TEXT("explorer"), szBuf, NULL, SW_SHOW);
-				break;
-			}
-			case ID_PAUSE_PROCESS: {	// 暂停进程
-				nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
-				lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
-				lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
-				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
-				SuspendProcess(_ttoi(lvi.pszText), TRUE);
-				break;
-			}
-			case ID_RESUME_PROCESS: {	// 恢复进程
-				nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
-				lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
-				lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
-				SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
-				SuspendProcess(_ttoi(lvi.pszText), FALSE);
+					StringCchPrintf(szBuf, _countof(szBuf), TEXT("确定要结束 %s 进程吗？"), lvi.pszText);
+					nRet = MessageBox(hWnd, szBuf, TEXT("结束进程"), MB_OKCANCEL);
+					if (nRet == IDCANCEL) return FALSE;
 
-				break;
-			}
+					lvi.iItem = nSelected; lvi.iSubItem	= 1;lvi.mask = LVIF_TEXT;
+					lvi.pszText = szProcessID; lvi.cchTextMax = _countof(szProcessID);
+					SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+					hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, _ttoi(lvi.pszText));
+
+					if (hProcess) {
+						bRet = TerminateProcess(hProcess, 0);
+						if (!bRet) {
+							StringCchPrintf(szBuf, _countof(szBuf), TEXT("结束进程 %s 失败"), szProcessName);
+							MessageBox(hWnd, szBuf, TEXT("错误提示"), MB_OK);
+						}else {
+							// 删除列表项
+							SendDlgItemMessage(hWnd, IDC_LIST, LVM_DELETEITEM, nSelected, 0);
+						}
+						CloseHandle(hProcess);
+					}
+					break;
+				}
+				case ID_OPEN_LOCATION: { // 打开文件所在位置
+					nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+					lvi.iItem = nSelected;	lvi.iSubItem = 3;	lvi.mask = LVIF_TEXT;	
+					lvi.pszText = szProcessName;	lvi.cchTextMax = _countof(szProcessName);
+					SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+
+					StringCchPrintf(szBuf, _countof(szBuf), TEXT("/select,%s"), lvi.pszText);
+					ShellExecute(hWnd, TEXT("open"), TEXT("explorer"), szBuf, NULL, SW_SHOW);
+					break;
+				}
+				case ID_PAUSE_PROCESS: {	// 暂停进程
+					nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+					lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
+					lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
+					SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+					SuspendProcess(_ttoi(lvi.pszText), TRUE);
+					break;
+				}
+				case ID_RESUME_PROCESS: {	// 恢复进程
+					nSelected = SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETSELECTIONMARK, 0, 0);
+					lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
+					lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
+					SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+					SuspendProcess(_ttoi(lvi.pszText), FALSE);
+
+					break;
+				}
+				case ID_SHOW_MODULES: {
+					nSelected = SendMessage(GetDlgItem(g_hWnd, IDC_LIST),LVM_GETSELECTIONMARK, 0, 0);	
+					lvi.iItem = nSelected;	lvi.iSubItem = 1;	lvi.mask = LVIF_TEXT;	
+					lvi.pszText = szProcessID;	lvi.cchTextMax = _countof(szProcessID);
+					SendMessage(GetDlgItem(hWnd, IDC_LIST), LVM_GETITEM, 0, (LPARAM)&lvi);
+					GetModuleList(_ttoi(lvi.pszText));
+					break;
+				}
 			}
 			break;
 		}
@@ -223,7 +252,7 @@ BOOL GetProcessList() {
 			}
 
 			// 第2列，进程ID
-			_itow_s(pe.th32ProcessID, szBuf, _countof(szBuf), 10);	// 10进制整数转字符串
+			_itow_s(pe.th32ProcessID, szBuf, _countof(szBuf), 10);	// 整数转10进制字符串
 			lvi.mask = LVIF_TEXT; lvi.iSubItem = 1;	lvi.pszText = szBuf;
 			SendMessage(GetDlgItem(g_hWnd,IDC_LIST), LVM_SETITEM, 0, (LPARAM)&lvi);
 
@@ -245,6 +274,53 @@ BOOL GetProcessList() {
 	CloseHandle(hSnapshot);
 	return FALSE;
 
+}
+
+VOID GetModuleList(DWORD dwProcessId) {
+	LVITEM lvi = { 0 };
+	HANDLE hSnapshot;
+	MODULEENTRY32 me = { sizeof(MODULEENTRY32) };
+	BOOL bRet = FALSE;
+	TCHAR szBaseSize[32] = { 0 };
+	TCHAR szBaseAddr[32] = { 0 };
+
+	// 删除所有列表项
+	SendMessage(GetDlgItem(g_hWnd, IDC_LIST_MODULE), LVM_DELETEALLITEMS, 0, 0);
+
+	// 枚举所有模块
+	hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, dwProcessId);
+
+	if (hSnapshot == INVALID_HANDLE_VALUE) {
+		MessageBox(g_hWnd, TEXT("CreateToolhelp32Snapshot函数调用失败"), TEXT ("提示"), MB_OK);
+		return;
+	}
+
+	bRet = Module32First(hSnapshot, &me);
+	while (bRet) {	
+		lvi.mask = LVIF_TEXT;
+		lvi.iItem = SendMessage(GetDlgItem(g_hWnd, IDC_LIST_MODULE), LVM_GETITEMCOUNT, 0, 0); // 设置行编号
+
+		// 第1列，模块名
+		lvi.iSubItem = 0 ; lvi.pszText = me.szModule;
+		SendMessage(GetDlgItem(g_hWnd, IDC_LIST_MODULE), LVM_INSERTITEM, 0, (LPARAM)&lvi);
+
+		// 第2列，模块基地址		
+		StringCchPrintf(szBaseAddr, _countof(szBaseAddr), TEXT("0x%p"), me.modBaseAddr);
+		lvi.mask = LVIF_TEXT; lvi.iSubItem = 1;	lvi.pszText = szBaseAddr;
+		SendMessage(GetDlgItem(g_hWnd,IDC_LIST_MODULE), LVM_SETITEM, 0, (LPARAM)&lvi);
+
+		// 第3列，模块大小(字节)		
+		_itow_s(me.modBaseSize, szBaseSize, _countof(szBaseSize), 16);
+		lvi.mask = LVIF_TEXT; lvi.iSubItem = 2;	lvi.pszText = szBaseSize;
+		SendMessage(GetDlgItem(g_hWnd,IDC_LIST_MODULE), LVM_SETITEM, 0, (LPARAM)&lvi);
+
+		// 第4列，模块路径		
+		lvi.mask = LVIF_TEXT; lvi.iSubItem = 3;	lvi.pszText = me.szExePath;
+		SendMessage(GetDlgItem(g_hWnd,IDC_LIST_MODULE), LVM_SETITEM, 0, (LPARAM)&lvi);
+
+		bRet = Module32Next(hSnapshot, &me);
+	}
+	CloseHandle(hSnapshot);
 }
 
 VOID SuspendProcess(DWORD dwProcessId, BOOL bSuspend) {
