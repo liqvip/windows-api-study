@@ -25,21 +25,22 @@ BOOL APIENTRY DllMain( HMODULE hModule,DWORD  ul_reason_for_call,LPVOID lpReserv
 
 				if ((mbi.AllocationBase == NULL) || (mbi.AllocationBase == hModule) || 
 					(mbi.BaseAddress != mbi.AllocationBase)) {
-					// 如果空间区域的基地址为 NULL
-					// 或者空间区域的基地址是本模块基地址，
-					// 或者页面区域的基地址并不是空间区域的基地址(每一个模块就是一块空间区域)
+					// 无效的内存区域
+					// 当前主模块（避免重复）
+					// 或者页面区域的基地址并不是空间区域的基地址(每一个模块就是一块空间区域)，不是分配区域的起始地址（避免重复枚举同一模块的多个页面）
 					nLen = 0;
 				}else {
 					// 获取加载到空间区域基地址处的模块文件名
 					nLen = GetModuleFileName(HMODULE(mbi.AllocationBase), szModName, _countof(szModName));
-					if (nLen > 0){
-						wsprintf(szBuf, TEXT("%p\t%s\r\n"), mbi.AllocationBase, szModName);
-						// 模块名称显示到进程RemoteApp的编辑控件中
-						SendDlgItemMessage(hwndRemoteApp, 1005,EM_SETSEL, -1, -1);
-						SendDlgItemMessage(hwndRemoteApp, 1005,EM_REPLACESEL, TRUE, (LPARAM)szBuf);
-					}
-					lpAddress += mbi.RegionSize;
 				}
+
+				if (nLen > 0){
+					wsprintf(szBuf, TEXT("%p\t%s\r\n"), mbi.AllocationBase, szModName);
+					// 模块名称显示到进程RemoteApp的编辑控件中
+					SendDlgItemMessage(hwndRemoteApp, 1005,EM_SETSEL, -1, -1);
+					SendDlgItemMessage(hwndRemoteApp, 1005,EM_REPLACESEL, TRUE, (LPARAM)szBuf);
+				}
+				lpAddress += mbi.RegionSize;
 			}
 			break;
 		case DLL_THREAD_ATTACH:
