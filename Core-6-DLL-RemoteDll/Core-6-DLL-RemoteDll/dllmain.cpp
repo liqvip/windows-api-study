@@ -37,8 +37,8 @@ BOOL APIENTRY DllMain( HMODULE hModule,DWORD  ul_reason_for_call,LPVOID lpReserv
 				if (nLen > 0){
 					wsprintf(szBuf, TEXT("%p\t%s\r\n"), mbi.AllocationBase, szModName);
 					// 模块名称显示到进程RemoteApp的编辑控件中
-					SendDlgItemMessage(hwndRemoteApp, 1005,EM_SETSEL, -1, -1);
-					SendDlgItemMessage(hwndRemoteApp, 1005,EM_REPLACESEL, TRUE, (LPARAM)szBuf);
+					SendDlgItemMessage(hwndRemoteApp,1005, EM_SETSEL, -1, -1);
+					SendDlgItemMessage(hwndRemoteApp,1005, EM_REPLACESEL, TRUE, (LPARAM)szBuf);
 				}
 				lpAddress += mbi.RegionSize;
 			}
